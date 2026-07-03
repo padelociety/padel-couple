@@ -47,27 +47,23 @@
   /* ===== 순위표 ===== */
   .card{background:var(--panel);border:1px solid var(--line-soft);border-radius:16px;padding:14px;margin:12px 0}
   .card h2{font-size:13px;letter-spacing:3px;color:var(--gold);font-weight:700;margin-bottom:10px;text-align:center}
-  table{width:100%;border-collapse:collapse}
-  th{font-size:11px;color:var(--dim);font-weight:600;padding:4px 6px;text-align:center}
-  td{padding:8px 6px;text-align:center;font-size:15px;border-top:1px solid var(--line-soft)}
-  td.teamcell{text-align:left;white-space:nowrap}
-  .chip{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:1px}
+  .standwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;min-width:360px}
+  th{font-size:11px;color:var(--dim);font-weight:600;padding:5px 4px;text-align:center;white-space:nowrap}
+  td{padding:9px 4px;text-align:center;font-size:14px;border-top:1px solid var(--line-soft);white-space:nowrap}
+  td.teamcell{text-align:left;white-space:nowrap;padding-left:6px;font-size:13.5px}
+  .chip{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
   .rank1 td{color:var(--gold-2);font-weight:800}
-  .pts{font-weight:800;color:var(--gold-2)}
+  .mp{font-weight:800;color:var(--gold-2)}
+  .gd-pos{color:var(--ok)}
+  .gd-neg{color:var(--warn)}
 
-  /* ===== 가짜부부 선정 ===== */
-  .selnote{text-align:center;font-size:12px;color:var(--dim);margin-bottom:10px}
-  .selrow{display:flex;align-items:center;gap:10px;padding:9px 4px;border-top:1px solid var(--line-soft);font-size:15px}
-  .selrow:first-child{border-top:none}
-  .selno{width:26px;height:26px;border-radius:50%;background:var(--gold-2);color:#153726;font-weight:800;font-size:13px;
-    display:flex;align-items:center;justify-content:center;flex:none}
-  .selrow.top .selno{background:transparent;border:1.5px solid var(--line);color:var(--gold-2)}
-  .selname{flex:1;font-weight:600}
-  .selrank{font-size:12px;color:var(--dim);flex:none}
-  .selrules{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line-soft);font-size:12.5px;color:var(--dim);line-height:1.7}
-  .selrules b{color:var(--cream);font-weight:700}
-  .selrules .warn{display:block;margin-top:8px;padding:8px 10px;border-left:3px solid var(--gold);
-    background:rgba(0,0,0,.2);border-radius:0 8px 8px 0;color:var(--warn);font-weight:600}
+  /* ===== 가짜부부 링크 ===== */
+  .navlink{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:6px 0 0;
+    padding:15px;border:1px solid var(--line);border-radius:14px;background:var(--panel);
+    color:var(--gold-2);font-size:15px;font-weight:700;text-decoration:none}
+  .navlink:active{background:var(--panel-2)}
+  .navlink small{color:var(--dim);font-weight:500;font-size:12px}
 
   /* ===== 경기 리스트 ===== */
   .match{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line-soft);
@@ -137,16 +133,22 @@
   .tvpanel{background:var(--panel);border:1px solid var(--line-soft);border-radius:1.5vh;padding:2vh 1.6vw;
     display:flex;flex-direction:column;min-height:0}
   .tvpanel h2{font-size:2vh;letter-spacing:.6vh;color:var(--gold);text-align:center;margin-bottom:1.4vh;flex:none}
-  .tvstand{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;min-height:0}
-  .tvrow{display:flex;align-items:center;gap:1vw;padding:.6vh 0;font-size:2.9vh}
-  .tvrow .rk{width:4.5vh;height:4.5vh;border-radius:50%;border:.3vh solid var(--line);display:flex;align-items:center;
-    justify-content:center;font-size:2.2vh;font-weight:800;color:var(--gold-2);flex:none}
-  .tvrow.r1 .rk{background:var(--gold-2);color:#153726;border-color:var(--gold-2)}
-  .tvrow .chip{width:1.8vh;height:1.8vh}
-  .tvrow .nm{flex:1;font-weight:700;white-space:nowrap;overflow:hidden}
-  .tvrow.r1 .nm{color:var(--gold-2)}
-  .tvrow .st{font-size:1.9vh;color:var(--dim);text-align:right;flex:none;white-space:nowrap}
-  .tvrow .pp{font-size:3.4vh;font-weight:800;color:var(--gold-2);width:7vw;text-align:right;flex:none}
+  .tvstand{flex:1;display:flex;flex-direction:column;justify-content:center;gap:.3vh;min-height:0}
+  .tvsrow{display:grid;grid-template-columns:5vh minmax(0,1.6fr) repeat(7, minmax(0,1fr));
+    align-items:center;gap:.3vw;font-size:2.7vh;padding:.7vh .5vw;border-radius:1vh}
+  .tvsrow>span{text-align:center;white-space:nowrap;overflow:hidden}
+  .tvsrow .rk{width:4.5vh;height:4.5vh;justify-self:start;border-radius:50%;border:.3vh solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:2.1vh;font-weight:800;color:var(--gold-2)}
+  .tvsrow .nm{text-align:left;font-weight:700;display:flex;align-items:center}
+  .tvsrow .nm .chip{width:1.6vh;height:1.6vh;margin-right:.6vw;flex:none}
+  .tvsrow .mp{color:var(--gold-2);font-weight:800}
+  .tvsrow.head{font-size:1.65vh;color:var(--dim);padding:.3vh .5vw;border-bottom:1px solid var(--line-soft)}
+  .tvsrow.head .mp{color:var(--gold)}
+  .tvsrow.r1{background:rgba(212,175,55,.12)}
+  .tvsrow.r1 .rk{background:var(--gold-2);color:#153726;border-color:var(--gold-2)}
+  .tvsrow.r1 .nm{color:var(--gold-2)}
+  .tvsrow .gd-pos{color:var(--ok)}
+  .tvsrow .gd-neg{color:var(--warn)}
   .tvright{display:flex;flex-direction:column;gap:1.6vh;min-height:0}
   .tvnow{flex:none;text-align:center;padding:2.4vh 1.6vw}
   .tvnow .label{font-size:1.8vh;letter-spacing:.5vh;color:var(--gold);margin-bottom:1.6vh}
@@ -187,23 +189,12 @@
 
   <div class="card">
     <h2>순위표</h2>
-    <table id="standTable"></table>
+    <div class="standwrap"><table id="standTable"></table></div>
   </div>
 
   <div id="matchList"></div>
 
-  <div class="card">
-    <h2>가짜부부 선정 순서</h2>
-    <div class="selnote" id="selNote"></div>
-    <div id="selList"></div>
-    <div class="selrules">
-      <b>①</b> 부부매치 순위 확정 → 꼴찌 팀부터 순서대로 진행<br>
-      <b>②</b> 선정 순서가 된 팀의 아내가 나오면 남편들은 코트 안을 자유롭게 이동<br>
-      <b>③</b> 아내가 원하는 남편에게 공을 던져 맞추면 그 남편이 파트너로 결정<br>
-      <b>④</b> 꼴찌 팀부터 1등 팀까지 차례로 파트너 선택
-      <span class="warn">※ 본인 남편은 지목 불가</span>
-    </div>
-  </div>
+  <a class="navlink" id="partnerLink" href="partner.html">💞 가짜부부 선정 &nbsp;<small>부부매치 끝나고 →</small></a>
 
   <footer>PADEL SOCIETY</footer>
 </div>
@@ -221,7 +212,7 @@
   </div>
   <div class="tvgrid">
     <div class="tvpanel">
-      <h2>순위</h2>
+      <h2>순위표</h2>
       <div class="tvstand" id="tvStand"></div>
     </div>
     <div class="tvright">
@@ -374,18 +365,27 @@ function commit(mutate){
   tryLoad();
 })();
 
-/* ================= 계산 ================= */
+/* ================= 계산 (구글시트 순위표 로직) =================
+   승점 = 승×3  |  득실차 = 총득점-총실점
+   순위 = ① 승점  ② 득실차  (동점 시 같은 순위) */
 function standings(){
-  const rows = TEAMS.map((t,i)=>({i, name:t.n, c:t.c, played:0, win:0, draw:0, pts:0, against:0}));
+  const rows = TEAMS.map((t,i)=>({i, name:t.n, c:t.c, played:0, win:0, loss:0, draw:0, mp:0, gf:0, ga:0, gd:0}));
   MATCHES.forEach((m,mi)=>{
     const sc = state.scores[mi]; if(!sc) return;
     const [a,b] = sc, [ta,tb] = m;
     rows[ta].played++; rows[tb].played++;
-    rows[ta].pts+=a; rows[tb].pts+=b;
-    rows[ta].against+=b; rows[tb].against+=a;
-    if(a>b) rows[ta].win++; else if(b>a) rows[tb].win++; else { rows[ta].draw++; rows[tb].draw++; }
+    rows[ta].gf+=a; rows[tb].gf+=b;          // 총득점
+    rows[ta].ga+=b; rows[tb].ga+=a;          // 총실점
+    if(a>b){ rows[ta].win++; rows[tb].loss++; }
+    else if(b>a){ rows[tb].win++; rows[ta].loss++; }
+    else { rows[ta].draw++; rows[tb].draw++; }
   });
-  rows.sort((x,y)=> y.pts-x.pts || y.win-x.win || (y.pts-y.against)-(x.pts-x.against));
+  rows.forEach(r=>{ r.mp = r.win*3; r.gd = r.gf - r.ga; });
+  // 순위: 승점 > 득실차 (구글시트 COUNTIFS 방식, 동점은 같은 순위)
+  rows.forEach(r=>{ r.rank = rows.filter(o=>o.mp>r.mp).length
+                           + rows.filter(o=>o.mp===r.mp && o.gd>r.gd).length + 1; });
+  // 표시 정렬: 승점 → 득실차 → 총득점
+  rows.sort((x,y)=> y.mp-x.mp || y.gd-x.gd || y.gf-x.gf);
   return rows;
 }
 const doneCount = () => Object.keys(state.scores).length;
@@ -403,13 +403,22 @@ function render(){
 
   // 순위표
   const rows = standings();
-  let h = "<tr><th>순위</th><th style='text-align:left'>팀</th><th>경기</th><th>승</th><th>점수</th></tr>";
-  rows.forEach((r,idx)=>{
-    h += "<tr class='"+(idx===0&&r.played>0?"rank1":"")+"'><td>"+(idx+1)+"</td>"
+  const anyPlayed = rows.some(r=>r.played>0);
+  let h = "<tr><th>순위</th><th style='text-align:left'>팀</th><th>경기</th><th>승</th><th>패</th>"
+        + "<th>승점</th><th>득점</th><th>실점</th><th>득실</th></tr>";
+  rows.forEach((r)=>{
+    const gdCls = r.gd>0?"gd-pos":(r.gd<0?"gd-neg":"");
+    h += "<tr class='"+(r.rank===1&&anyPlayed?"rank1":"")+"'><td>"+r.rank+"</td>"
       + "<td class='teamcell'><span class='chip' style='background:"+r.c+"'></span>"+r.name+"</td>"
-      + "<td>"+r.played+"</td><td>"+r.win+"</td><td class='pts'>"+r.pts+"</td></tr>";
+      + "<td>"+r.played+"</td><td>"+r.win+"</td><td>"+r.loss+"</td>"
+      + "<td class='mp'>"+r.mp+"</td><td>"+r.gf+"</td><td>"+r.ga+"</td>"
+      + "<td class='"+gdCls+"'>"+(r.gd>0?"+":"")+r.gd+"</td></tr>";
   });
   document.getElementById("standTable").innerHTML = h;
+
+  // 가짜부부 링크에 방 코드 유지
+  const pl = document.getElementById("partnerLink");
+  if(pl) pl.href = "partner.html?room=" + encodeURIComponent(room);
 
   // 경기 리스트
   const ni = nowIdx();
@@ -427,28 +436,7 @@ function render(){
   });
   document.getElementById("matchList").innerHTML = mh;
 
-  renderSelection(rows, done);
-
   if(tvMode) renderTV(rows, ni, done);
-}
-
-/* ================= 가짜부부 선정 순서 ================= */
-function renderSelection(rows, done){
-  const complete = done === MATCHES.length;
-  document.getElementById("selNote").innerHTML = complete
-    ? "부부매치 최종 순위 기준 · <b style='color:var(--gold-2)'>꼴찌 팀부터</b> 파트너를 지목합니다"
-    : "<span class='bad' style='color:var(--warn)'>부부매치 진행 중 — 15경기 완료 시 순서가 확정됩니다 ("+done+"/"+MATCHES.length+")</span>";
-  const order = rows.slice().reverse();   // 꼴찌 → 1등
-  let h = "";
-  order.forEach((r,idx)=>{
-    const finalRank = rows.length - idx;  // 원래 순위
-    h += "<div class='selrow "+(idx===order.length-1?"top":"")+"'>"
-      + "<span class='selno'>"+(idx+1)+"</span>"
-      + "<span class='chip' style='background:"+r.c+"'></span>"
-      + "<span class='selname'>"+r.name+"</span>"
-      + "<span class='selrank'>"+(complete?"부부매치 "+finalRank+"위":"")+"</span></div>";
-  });
-  document.getElementById("selList").innerHTML = h;
 }
 
 /* ================= 렌더 (TV) ================= */
@@ -456,21 +444,26 @@ function renderTV(rows, ni, done){
   document.getElementById("tvProgLeft").textContent = done + " / " + MATCHES.length + " 경기 완료";
   document.getElementById("tvProgBar").style.width = (done/MATCHES.length*100) + "%";
 
-  let sh = "";
-  rows.forEach((r,idx)=>{
-    sh += "<div class='tvrow "+(idx===0&&r.played>0?"r1":"")+"'>"
-      + "<span class='rk'>"+(idx+1)+"</span>"
-      + "<span class='chip' style='background:"+r.c+"'></span>"
-      + "<span class='nm'>"+r.name+"</span>"
-      + "<span class='st'>"+r.played+"경기 · "+r.win+"승</span>"
-      + "<span class='pp'>"+r.pts+"</span></div>";
+  const anyPlayed = rows.some(r=>r.played>0);
+  let sh = "<div class='tvsrow head'><span></span><span class='nm'>팀</span>"
+    + "<span>경기</span><span>승</span><span>패</span><span class='mp'>승점</span>"
+    + "<span>득점</span><span>실점</span><span>득실</span></div>";
+  rows.forEach((r)=>{
+    const gdCls = r.gd>0?"gd-pos":(r.gd<0?"gd-neg":"");
+    sh += "<div class='tvsrow "+(r.rank===1&&anyPlayed?"r1":"")+"'>"
+      + "<span class='rk'>"+r.rank+"</span>"
+      + "<span class='nm'><span class='chip' style='background:"+r.c+"'></span>"+r.name+"</span>"
+      + "<span>"+r.played+"</span><span>"+r.win+"</span><span>"+r.loss+"</span>"
+      + "<span class='mp'>"+r.mp+"</span><span>"+r.gf+"</span><span>"+r.ga+"</span>"
+      + "<span class='"+gdCls+"'>"+(r.gd>0?"+":"")+r.gd+"</span></div>";
   });
   document.getElementById("tvStand").innerHTML = sh;
 
   const nowEl = document.getElementById("tvNow");
   if(ni === -1){
     const champ = rows[0];
-    nowEl.innerHTML = "<div class='champ'><small>CHAMPION</small>🏆 "+champ.name+"<small style='margin-top:.6vh'>"+champ.pts+"점 · "+champ.win+"승</small></div>";
+    nowEl.innerHTML = "<div class='champ'><small>CHAMPION</small>🏆 "+champ.name
+      + "<small style='margin-top:.6vh'>"+champ.win+"승 · 승점 "+champ.mp+" · 득실 "+(champ.gd>0?"+":"")+champ.gd+"</small></div>";
   }else{
     const m = MATCHES[ni];
     nowEl.innerHTML = "<div class='label'>NOW PLAYING</div>"

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a2f24">
+<title>가짜부부 선정 · Padel Society</title>
+<style>
+  :root{
+    --bg-1:#0a2f24; --bg-2:#0d4433; --bg-3:#0f5240;
+    --panel:rgba(255,255,255,.05); --panel-2:rgba(255,255,255,.09);
+    --line:rgba(212,175,55,.35); --line-soft:rgba(255,255,255,.12);
+    --gold:#d4af37; --gold-2:#e8c66a; --cream:#f5edd8; --dim:rgba(245,237,216,.6);
+    --ok:#7ed491; --warn:#e8a06a; --pink:#e79ab0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+    background:radial-gradient(120% 90% at 50% 0%, var(--bg-3) 0%, var(--bg-2) 45%, var(--bg-1) 100%);
+    color:var(--cream); min-height:100dvh;
+  }
+  button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:560px;margin:0 auto;padding:16px 14px 40px}
+
+  header{text-align:center;padding:12px 0 4px}
+  .title{font-size:clamp(24px,6.5vw,32px);font-weight:800;color:var(--gold-2);letter-spacing:4px}
+  .subtitle{font-size:clamp(10px,2.8vw,13px);letter-spacing:4px;color:var(--gold);margin-top:4px;font-weight:600}
+  .rings{color:var(--gold);opacity:.85;font-size:15px;margin-top:2px}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}
+  .backlink{font-size:13px;color:var(--dim);border:1px solid var(--line-soft);border-radius:999px;padding:6px 12px}
+  .statuspills{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;
+    padding:5px 11px;font-size:12px;color:var(--cream);background:var(--panel)}
+  .dot{width:8px;height:8px;border-radius:50%;background:#888;flex:none}
+  .dot.on{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+  .dot.off{background:#999}
+
+  .card{background:var(--panel);border:1px solid var(--line-soft);border-radius:16px;padding:16px 14px;margin:12px 0}
+  .card h2{font-size:12px;letter-spacing:3px;color:var(--gold);font-weight:700;margin-bottom:12px;text-align:center}
+
+  .banner{border-radius:12px;padding:11px 13px;font-size:13px;line-height:1.5;margin:10px 0;font-weight:600}
+  .banner.warn{background:rgba(232,160,106,.14);border:1px solid rgba(232,160,106,.4);color:var(--warn)}
+  .banner.rule{background:rgba(0,0,0,.18);border-left:3px solid var(--gold);color:var(--dim);font-weight:500}
+  .banner.rule b{color:var(--cream)}
+
+  /* ===== 현재 선택자 ===== */
+  .picker{text-align:center}
+  .picker .step{font-size:12px;letter-spacing:2px;color:var(--gold);font-weight:700}
+  .picker .who{font-size:30px;font-weight:800;margin:6px 0 2px}
+  .picker .whoteam{font-size:12.5px;color:var(--dim);margin-bottom:4px}
+  .picker .guide{font-size:14px;color:var(--cream);margin-bottom:14px}
+  .picker .guide b{color:var(--gold-2)}
+  .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hbtn{border:1.8px solid;border-radius:14px;padding:14px 8px;background:var(--panel);
+    display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .05s}
+  .hbtn:active{transform:scale(.96)}
+  .hbtn .hname{font-size:19px;font-weight:800}
+  .hbtn .hteam{font-size:11.5px;color:var(--dim)}
+  .hbtn.own{border-color:var(--line-soft)!important;opacity:.4;filter:grayscale(.4)}
+  .hbtn.own .hname{color:var(--dim)}
+
+  /* ===== 순서 리스트 ===== */
+  .orow{display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid var(--line-soft);font-size:15px}
+  .orow:first-child{border-top:none}
+  .ono{width:26px;height:26px;border-radius:50%;font-weight:800;font-size:13px;flex:none;
+    display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);color:var(--gold-2)}
+  .orow.done .ono{background:var(--gold-2);color:#153726;border-color:var(--gold-2)}
+  .orow.cur{background:rgba(212,175,55,.1);border-radius:10px;margin:0 -4px;padding:10px 8px}
+  .orow.cur .ono{box-shadow:0 0 0 3px rgba(212,175,55,.25)}
+  .owife{flex:1;font-weight:600}
+  .owife .wrank{font-size:11px;color:var(--dim);margin-left:6px;font-weight:500}
+  .opick{font-size:14px;font-weight:700;flex:none}
+  .opick .arrow{color:var(--gold);margin:0 5px}
+  .opick.waiting{color:var(--dim);font-weight:500;font-size:12.5px}
+  .opick.curtag{color:var(--gold-2);font-size:12.5px}
+
+  /* ===== 결과 ===== */
+  .pair{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-top:1px solid var(--line-soft)}
+  .pair:first-child{border-top:none}
+  .pball{border:1.8px solid;border-radius:999px;padding:7px 16px;font-size:16px;font-weight:800}
+  .pair .heart{color:var(--pink);font-size:18px}
+  .doneTitle{text-align:center;font-size:20px;font-weight:800;color:var(--gold-2);margin:2px 0 14px}
+  .doneTitle small{display:block;font-size:12px;letter-spacing:2px;color:var(--gold);font-weight:600;margin-bottom:6px}
+
+  .actions{display:flex;gap:10px;margin-top:14px}
+  .actions button{flex:1;padding:13px;border-radius:12px;font-size:14px;font-weight:700;
+    border:1px solid var(--line-soft);background:var(--panel-2);color:var(--cream)}
+  .actions .reset{background:rgba(224,120,100,.14);color:#e8a08c;border-color:rgba(224,120,100,.4)}
+  .actions button:disabled{opacity:.35}
+
+  footer{text-align:center;letter-spacing:5px;font-size:11px;color:var(--dim);padding:22px 0 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">가짜부부 선정</div>
+    <div class="subtitle">PARTNER SELECTION</div>
+    <div class="rings">⚭</div>
+  </header>
+
+  <div class="topbar">
+    <a class="backlink" id="backLink" href="index.html">← 점수판</a>
+    <div class="statuspills">
+      <span class="pill"><span class="dot" id="syncDot"></span><span id="syncText">연결 중…</span></span>
+      <span class="pill">💞 <span id="progText">0 / 6</span></span>
+    </div>
+  </div>
+
+  <div id="warnBanner"></div>
+
+  <div class="card" id="pickerCard">
+    <div class="picker" id="picker"></div>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none">
+    <div class="doneTitle"><small>FAKE COUPLES</small>🎉 가짜부부 완성!</div>
+    <div id="resultList"></div>
+  </div>
+
+  <div class="card">
+    <h2>선정 순서 · 꼴찌 팀부터</h2>
+    <div id="orderList"></div>
+    <div class="banner rule">
+      <b>규칙</b> · 부부매치 꼴찌 팀 아내부터 순서대로, 원하는 남편에게 공을 던져 파트너를 정합니다. <b>본인 남편은 지목 불가.</b>
+    </div>
+    <div class="actions">
+      <button id="undoBtn" onclick="undo()">↩ 방금 취소</button>
+      <button class="reset" onclick="resetPartners()">전체 다시</button>
+    </div>
+  </div>
+
+  <footer>PADEL SOCIETY</footer>
+</div>
+
+<script>
+/* ================= 데이터 (index.html과 동일) ================= */
+const TEAMS = [
+  {n:"은영 · 진용", c:"#E8C05A"},
+  {n:"나래 · 안규", c:"#8FC7B4"},
+  {n:"현정 · 광운", c:"#E09A85"},
+  {n:"유나 · 준우", c:"#A3C585"},
+  {n:"수정 · 준석", c:"#BFA0DC"},
+  {n:"우석 · 리나", c:"#CDBE62"},
+];
+// 각 팀의 아내(여자)·남편(남자). ※ 우석·리나 팀만 남자·여자 순서
+const PEOPLE = [
+  {wife:"은영", husband:"진용"},
+  {wife:"나래", husband:"안규"},
+  {wife:"현정", husband:"광운"},
+  {wife:"유나", husband:"준우"},
+  {wife:"수정", husband:"준석"},
+  {wife:"리나", husband:"우석"},
+];
+const MATCHES = [
+  [0,1],[2,5],[3,4],[0,5],[1,4],
+  [2,3],[0,4],[5,3],[1,2],[0,3],
+  [4,2],[5,1],[0,2],[3,1],[4,5],
+];
+
+/* ================= 상태 (index.html과 방·토픽 공유) ================= */
+const params = new URLSearchParams(location.search);
+let state = { rev:0, total:16, scores:{}, partners:{} };
+let room = params.get("room") || localStorage.getItem("pc_room") || "0703";
+
+function loadLocal(){
+  try{ const s = JSON.parse(localStorage.getItem("pc_state_"+room)); if(s && typeof s.rev==="number") state = s; }catch(e){}
+  if(!state.partners) state.partners = {};
+}
+function saveLocal(){ localStorage.setItem("pc_state_"+room, JSON.stringify(state)); }
+loadLocal();
+document.getElementById("backLink").href = "index.html?room=" + encodeURIComponent(room);
+
+/* ================= 동기화 ================= */
+const BROKERS = ["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];
+let client=null, brokerIdx=0, gotRemote=false;
+const topic = () => "padelsociety/couple/" + room + "/state";
+function setSync(on, text){
+  document.getElementById("syncDot").className = "dot " + (on?"on":"off");
+  document.getElementById("syncText").textContent = text;
+}
+function connectSync(){
+  if(typeof mqtt === "undefined"){ setSync(false,"오프라인"); return; }
+  if(client){ try{client.end(true);}catch(e){} client=null; }
+  gotRemote = false; setSync(false,"연결 중…");
+  const c = mqtt.connect(BROKERS[brokerIdx], {
+    clientId: "pp_" + Math.random().toString(16).slice(2,10),
+    reconnectPeriod: 3000, connectTimeout: 8000, clean: true,
+  });
+  client = c;
+  c.on("connect", ()=>{
+    setSync(true, "실시간 · 방 " + room);
+    c.subscribe(topic());
+    setTimeout(()=>{ if(!gotRemote && state.rev>0) publish(); }, 2000);
+  });
+  c.on("message", (t, msg)=>{
+    try{
+      const remote = JSON.parse(msg.toString());
+      if(typeof remote.rev==="number" && remote.rev > state.rev){
+        state = remote; if(!state.partners) state.partners={};
+        gotRemote = true; saveLocal(); render();
+      } else { gotRemote = true; }
+    }catch(e){}
+  });
+  c.on("close", ()=> setSync(false,"재연결 중…"));
+  c.on("error", ()=>{
+    brokerIdx = (brokerIdx+1) % BROKERS.length;
+    try{c.end(true);}catch(e){}
+    setTimeout(connectSync, 1500);
+  });
+}
+function publish(){
+  saveLocal();
+  if(client && client.connected) client.publish(topic(), JSON.stringify(state), {retain:true, qos:1});
+}
+function commit(mutate){
+  if(!state.partners) state.partners={};
+  mutate();
+  state.rev = Math.max(state.rev+1, Date.now());
+  publish(); render();
+}
+(function(){
+  const urls = ["https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js","https://unpkg.com/mqtt@5/dist/mqtt.min.js"];
+  let i=0;
+  function tryLoad(){
+    if(i>=urls.length){ setSync(false,"오프라인"); return; }
+    const s=document.createElement("script"); s.src=urls[i++]; s.onload=connectSync; s.onerror=tryLoad;
+    document.head.appendChild(s);
+  }
+  tryLoad();
+})();
+
+/* ================= 순위 계산 (index.html과 동일 로직) ================= */
+function standings(){
+  const rows = TEAMS.map((t,i)=>({i, name:t.n, c:t.c, win:0, mp:0, gf:0, ga:0, gd:0}));
+  MATCHES.forEach((m,mi)=>{
+    const sc = state.scores[mi]; if(!sc) return;
+    const [a,b]=sc, [ta,tb]=m;
+    rows[ta].gf+=a; rows[tb].gf+=b; rows[ta].ga+=b; rows[tb].ga+=a;
+    if(a>b) rows[ta].win++; else if(b>a) rows[tb].win++;
+  });
+  rows.forEach(r=>{ r.mp=r.win*3; r.gd=r.gf-r.ga; });
+  rows.forEach(r=>{ r.rank = rows.filter(o=>o.mp>r.mp).length
+                           + rows.filter(o=>o.mp===r.mp && o.gd>r.gd).length + 1; });
+  rows.sort((x,y)=> y.mp-x.mp || y.gd-x.gd || y.gf-x.gf);
+  return rows;
+}
+const doneCount = () => Object.keys(state.scores).length;
+
+/* ================= 렌더 ================= */
+function render(){
+  const rows = standings();
+  const order = rows.slice().reverse();          // 꼴찌 → 1등 (선정 순서)
+  const picks = state.partners || {};            // {아내팀: 남편팀}
+  const takenHusbands = new Set(Object.values(picks).map(Number));
+  const pickedCount = Object.keys(picks).length;
+  const scoreDone = doneCount() === MATCHES.length;
+
+  document.getElementById("progText").textContent = pickedCount + " / 6";
+
+  // 경고 배너
+  const wb = document.getElementById("warnBanner");
+  wb.innerHTML = scoreDone ? "" :
+    "<div class='banner warn'>⚠️ 부부매치가 아직 안 끝났어요 ("+doneCount()+"/15). 지금 순서는 <b>중간 순위 기준 임시 순서</b>입니다.</div>";
+
+  // 현재 선택 차례 = order 중 아직 안 고른 첫 팀
+  const cur = order.find(r=> picks[r.i]===undefined);
+
+  // 순서 리스트
+  let ol = "";
+  order.forEach((r,idx)=>{
+    const wife = PEOPLE[r.i].wife;
+    const isCur = cur && cur.i===r.i;
+    const done = picks[r.i]!==undefined;
+    let statusHtml;
+    if(done){
+      const hTeam = picks[r.i], husband = PEOPLE[hTeam].husband;
+      statusHtml = "<span class='opick'>"+wife+"<span class='arrow'>♥</span>"
+        + "<span style='color:"+TEAMS[hTeam].c+"'>"+husband+"</span></span>";
+    } else if(isCur){
+      statusHtml = "<span class='opick curtag'>▶ 선택 중</span>";
+    } else {
+      statusHtml = "<span class='opick waiting'>대기</span>";
+    }
+    ol += "<div class='orow "+(done?"done ":"")+(isCur?"cur":"")+"'>"
+      + "<span class='ono'>"+(idx+1)+"</span>"
+      + "<span class='owife'><span class='chip' style='display:inline-block;width:9px;height:9px;border-radius:50%;background:"
+        + r.c+";margin-right:6px'></span>"+wife
+      + "<span class='wrank'>"+(scoreDone?"부부매치 "+r.rank+"위":"("+r.rank+"위)")+"</span></span>"
+      + statusHtml + "</div>";
+  });
+  document.getElementById("orderList").innerHTML = ol;
+
+  // 현재 선택 카드 / 결과 카드
+  const pickerCard = document.getElementById("pickerCard");
+  const resultCard = document.getElementById("resultCard");
+  if(cur){
+    resultCard.style.display = "none";
+    pickerCard.style.display = "";
+    renderPicker(cur, takenHusbands, order.indexOf(cur)+1, scoreDone);
+  } else {
+    pickerCard.style.display = "none";
+    resultCard.style.display = "";
+    renderResult(order);
+  }
+
+  // 취소 버튼: 고른 게 있을 때만
+  document.getElementById("undoBtn").disabled = pickedCount===0;
+}
+
+function renderPicker(cur, taken, stepNo, scoreDone){
+  const wife = PEOPLE[cur.i].wife;
+  // 남을 수 있는 남편들 = 아직 안 뽑힌 팀 (본인 팀 제외해서 선택 가능한지 판단)
+  const remaining = TEAMS.map((_,ti)=>ti).filter(ti=> !taken.has(ti));
+  const selectable = remaining.filter(ti=> ti!==cur.i);
+
+  let grid = "";
+  remaining.forEach(ti=>{
+    const own = ti===cur.i;
+    const husband = PEOPLE[ti].husband;
+    if(own){
+      grid += "<button class='hbtn own' disabled>"
+        + "<span class='hname'>"+husband+"</span>"
+        + "<span class='hteam'>본인 남편 ✕</span></button>";
+    } else {
+      grid += "<button class='hbtn' style='border-color:"+TEAMS[ti].c+";color:"+TEAMS[ti].c+"' "
+        + "onclick='pick("+cur.i+","+ti+")'>"
+        + "<span class='hname'>"+husband+"</span>"
+        + "<span class='hteam'>"+TEAMS[ti].n+"</span></button>";
+    }
+  });
+
+  const deadlock = selectable.length===0;   // 본인 남편만 남음
+  document.getElementById("picker").innerHTML =
+    "<div class='step'>선정 순서 "+stepNo+"번째" + (scoreDone?" · 부부매치 "+cur.rank+"위":"") + "</div>"
+    + "<div class='who' style='color:"+cur.c+"'>"+wife+"</div>"
+    + "<div class='whoteam'>"+cur.name+"</div>"
+    + (deadlock
+        ? "<div class='banner warn' style='text-align:center'>😅 남은 남편이 본인 남편뿐이에요.<br>아래 <b>↩ 방금 취소</b>로 앞 순서를 다시 골라 주세요.</div>"
+        : "<div class='guide'><b>"+wife+"</b> 님, 파트너로 삼을 <b>남편</b>을 고르세요</div>")
+    + "<div class='hgrid'>"+grid+"</div>";
+}
+
+function renderResult(order){
+  let h = "";
+  order.slice().reverse().forEach(r=>{        // 다시 1등 → 꼴찌 순으로 보기 좋게
+    const wife = PEOPLE[r.i].wife;
+    const hTeam = state.partners[r.i];
+    const husband = PEOPLE[hTeam].husband;
+    h += "<div class='pair'>"
+      + "<span class='pball' style='border-color:"+r.c+";color:"+r.c+"'>"+wife+"</span>"
+      + "<span class='heart'>♥</span>"
+      + "<span class='pball' style='border-color:"+TEAMS[hTeam].c+";color:"+TEAMS[hTeam].c+"'>"+husband+"</span>"
+      + "</div>";
+  });
+  document.getElementById("resultList").innerHTML = h;
+}
+
+/* ================= 액션 ================= */
+function pick(wifeTeam, husbandTeam){
+  commit(()=>{ state.partners[wifeTeam] = husbandTeam; });
+}
+function undo(){
+  // 선정 순서상 가장 마지막으로 고른 팀의 선택을 취소
+  const rows = standings();
+  const order = rows.slice().reverse();
+  let lastPicked = null;
+  order.forEach(r=>{ if(state.partners[r.i]!==undefined) lastPicked = r.i; });
+  if(lastPicked===null) return;
+  commit(()=>{ delete state.partners[lastPicked]; });
+}
+function resetPartners(){
+  if(!confirm("가짜부부 선택을 모두 지울까요?")) return;
+  commit(()=>{ state.partners = {}; });
+}
+
+render();
+</script>
+</body>
+</html>
