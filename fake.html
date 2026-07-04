@@ -320,10 +320,7 @@
       <button onclick="bump('b',1)">＋</button>
     </div>
   </div>
-  <div class="sumline">
-    합계 <span id="sumNow">16</span> / <span id="sumTarget">16</span>
-    <button class="linkbtn on" id="linkBtn" onclick="toggleLink()">🔗 자동 채우기</button>
-  </div>
+  <div class="sumline">🏓 <b>4게임 먼저</b> 이긴 팀이 승 · 예) 4 : 1, 4 : 3</div>
   <div class="sheetbtns">
     <button class="btn-cancel" onclick="closeSheet()">취소</button>
     <button class="btn-del" id="delBtn" onclick="deleteScore()">삭제</button>
@@ -336,7 +333,7 @@
 <div class="sheet settings" id="setSheet">
   <h3>설정</h3>
   <div class="row"><span>방 코드 (폰·TV 동일하게)</span><input type="text" id="setRoom"></div>
-  <div class="row"><span>경기당 총 점수 (서브 4개 = 16점)</span><input type="number" id="setTotal" min="4" max="64"></div>
+  <div class="row" style="font-size:12px;color:var(--dim)"><span>가짜부부 매치</span><span>4게임 선취</span></div>
   <div class="sheetbtns">
     <button class="btn-cancel" onclick="closeSettings(false)">취소</button>
     <button class="btn-save" onclick="closeSettings(true)">적용</button>
@@ -680,29 +677,15 @@ function openSheet(i){
   $("sheetTitle").textContent = "MATCH " + (i+1);
   $("edNameA").outerHTML = teamTag(m[0]).replace("<span","<span id='edNameA'");
   $("edNameB").outerHTML = teamTag(m[1]).replace("<span","<span id='edNameB'");
-  const half = Math.floor(state.total/2);
-  $("numA").value = sc ? sc[0] : half;
-  $("numB").value = sc ? sc[1] : state.total-half;
+  $("numA").value = sc ? sc[0] : 0;
+  $("numB").value = sc ? sc[1] : 0;
   $("delBtn").style.display = sc ? "" : "none";
-  $("sumTarget").textContent = state.total;
-  updateSum();
   $("sheetBg").classList.add("open"); $("sheet").classList.add("open");
 }
 function closeSheet(){ $("sheetBg").classList.remove("open"); $("sheet").classList.remove("open"); }
 function bump(side, d){
   const el = side==="a" ? $("numA") : $("numB");
-  const other = side==="a" ? $("numB") : $("numA");
-  let v = Math.max(0, (parseInt(el.value)||0) + d);
-  el.value = v;
-  if(linked) other.value = Math.max(0, state.total - v);
-  updateSum();
-}
-$("numA").addEventListener("input", ()=>{ if(linked) $("numB").value=Math.max(0,state.total-(parseInt($("numA").value)||0)); updateSum(); });
-$("numB").addEventListener("input", ()=>{ if(linked) $("numA").value=Math.max(0,state.total-(parseInt($("numB").value)||0)); updateSum(); });
-function toggleLink(){ linked=!linked; $("linkBtn").classList.toggle("on", linked); }
-function updateSum(){
-  const s = (parseInt($("numA").value)||0)+(parseInt($("numB").value)||0);
-  $("sumNow").innerHTML = "<span class='"+(s===state.total?"good":"bad")+"'>"+s+"</span>";
+  el.value = Math.min(9, Math.max(0, (parseInt(el.value)||0) + d));
 }
 function saveScore(){
   if(editIdx < 0) return closeSheet();
@@ -718,19 +701,17 @@ function deleteScore(){
 
 /* ================= 설정 ================= */
 function openSettings(){
-  $("setRoom").value = room; $("setTotal").value = state.total;
+  $("setRoom").value = room;
   $("sheetBg").classList.add("open"); $("setSheet").classList.add("open");
   $("sheetBg").onclick = ()=>closeSettings(false);
 }
 function closeSettings(apply){
   if(apply){
     const newRoom = $("setRoom").value.trim() || room;
-    const newTotal = Math.max(4, parseInt($("setTotal").value)||16);
     if(newRoom !== room){
       room = newRoom; localStorage.setItem("pc_room", room);
       loadLocal(); connectSync();
     }
-    if(newTotal !== state.total) commit(()=>{ state.total = newTotal; });
   }
   $("sheetBg").classList.remove("open"); $("setSheet").classList.remove("open");
   $("sheetBg").onclick = closeSheet;
