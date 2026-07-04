@@ -102,6 +102,62 @@
   .actions button:disabled{opacity:.35}
 
   footer{text-align:center;letter-spacing:5px;font-size:11px;color:var(--dim);padding:22px 0 8px}
+
+  /* ================= TV 모드 ================= */
+  body.tv{overflow:hidden}
+  .tvwrap{display:none}
+  body.tv .wrap{display:none}
+  body.tv .tvwrap{display:flex;flex-direction:column;height:100dvh;padding:2.2vh 3vw;max-width:none}
+  .tvhead{display:flex;align-items:center;justify-content:center;gap:1.4vw;flex:none;position:relative}
+  .tvlogo{height:6vh;opacity:.95}
+  .tvhead .tvtitle{font-size:4.2vh;letter-spacing:1vh;color:var(--gold-2);font-weight:800}
+  .tvprog{position:absolute;right:0;font-size:2.4vh;color:var(--gold-2);font-weight:800;
+    border:1px solid var(--line);border-radius:99px;padding:.6vh 1.4vw}
+  .tvbody{flex:1;display:grid;grid-template-columns:1.45fr 1fr;gap:2vw;min-height:0;margin-top:1.6vh}
+  .tvpanel{background:var(--panel);border:1px solid var(--line-soft);border-radius:1.5vh;padding:2.2vh 1.8vw;
+    display:flex;flex-direction:column;min-height:0}
+  .tvpanel h2{font-size:1.9vh;letter-spacing:.6vh;color:var(--gold);text-align:center;margin-bottom:1.4vh;flex:none}
+
+  .tvmain{justify-content:center;text-align:center}
+  .tvstep{font-size:2.2vh;letter-spacing:.4vh;color:var(--gold);font-weight:700;margin-bottom:1.2vh}
+  .tvwife{font-size:6vh;font-weight:800;margin-bottom:1vh;line-height:1}
+  .tvwifesub{font-size:2.3vh;color:var(--cream);margin-bottom:2.8vh}
+  .tvwifesub b{color:var(--gold-2)}
+  .tvhgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2vw}
+  .tvhcard{border:.35vh solid;border-radius:1.4vh;padding:2vh .8vw;display:flex;flex-direction:column;align-items:center;gap:.5vh}
+  .tvhcard .hn{font-size:3.4vh;font-weight:800}
+  .tvhcard .ht{font-size:1.55vh;color:var(--dim)}
+  .tvhcard.own{border-color:var(--line-soft)!important;opacity:.4}
+  .tvhcard.own .hn{color:var(--dim)}
+  .tvwarn{font-size:2.5vh;color:var(--warn);font-weight:700;line-height:1.7}
+
+  .tvcelebrate{justify-content:center;text-align:center}
+  .tvcelebrate .sub{font-size:2vh;letter-spacing:.7vh;color:var(--gold);margin-bottom:.6vh}
+  .tvcelebrate .big{font-size:5vh;font-weight:800;color:var(--gold-2);margin-bottom:2.4vh}
+  .tvpairBig{display:flex;align-items:center;justify-content:center;gap:1.4vw;padding:1vh 0}
+  .tvpairBig .pb{border:.35vh solid;border-radius:99px;padding:1vh 2.4vw;font-size:3.2vh;font-weight:800}
+  .tvpairBig .hb{color:var(--pink);font-size:3.4vh}
+
+  .tvsidelist{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;min-height:0}
+  .tvorow{display:flex;align-items:center;gap:1vw;font-size:2.4vh;padding:.5vh .4vw;border-radius:1vh}
+  .tvorow .on{width:4vh;height:4vh;border-radius:50%;border:.25vh solid var(--line);color:var(--gold-2);
+    font-weight:800;font-size:1.9vh;display:flex;align-items:center;justify-content:center;flex:none}
+  .tvorow.done .on{background:var(--gold-2);color:#153726;border-color:var(--gold-2)}
+  .tvorow.cur{background:rgba(212,175,55,.14)}
+  .tvorow .wf{flex:1;font-weight:700;white-space:nowrap;overflow:hidden;display:flex;align-items:center}
+  .tvorow .pk{font-size:2vh;font-weight:700;flex:none;white-space:nowrap}
+  .tvorow .pk .hb{color:var(--pink);margin:0 .5vw}
+  .tvorow.cur .pk{color:var(--gold-2)}
+  .tvorow .pk.wait{color:var(--dim);font-weight:500;font-size:1.7vh}
+
+  .tvfoot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:2vw;
+    font-size:1.6vh;color:var(--dim);padding-top:1.4vh}
+  .tvfoot .brand{letter-spacing:.8vh}
+  .tvsync{display:inline-flex;align-items:center;gap:.7vw;white-space:nowrap}
+  .tvdot{width:1.2vh;height:1.2vh;border-radius:50%;background:#999;flex:none}
+  .tvdot.on{background:var(--ok);box-shadow:0 0 1vh var(--ok)}
+  .tvdot.off{background:var(--warn)}
+  #tvUpdated{color:var(--gold-2)}
 </style>
 </head>
 <body>
@@ -114,6 +170,7 @@
 
   <div class="topbar">
     <a class="backlink" id="backLink" href="index.html">← 점수판</a>
+    <button class="backlink" onclick="setTv(true)">📺 TV 모드</button>
     <div class="statuspills">
       <span class="pill"><span class="dot" id="syncDot"></span><span id="syncText">연결 중…</span></span>
       <span class="pill">💞 <span id="progText">0 / 6</span></span>
@@ -146,6 +203,27 @@
   <footer>PADEL SOCIETY</footer>
 </div>
 
+<!-- ================= TV 모드 ================= -->
+<div class="tvwrap">
+  <div class="tvhead">
+    <img class="tvlogo" src="logo.png" alt="">
+    <div class="tvtitle">가짜부부 선정</div>
+    <div class="tvprog" id="tvProg">0 / 6</div>
+  </div>
+  <div class="tvbody">
+    <div class="tvpanel tvmain" id="tvMain"></div>
+    <div class="tvpanel">
+      <h2>선정 순서 · 꼴찌 팀부터</h2>
+      <div class="tvsidelist" id="tvOrder"></div>
+    </div>
+  </div>
+  <div class="tvfoot">
+    <span class="tvsync"><span class="tvdot" id="tvSyncDot"></span><span id="tvSyncText">연결 중…</span></span>
+    <span class="brand">PADEL SOCIETY</span>
+    <span class="tvsync" id="tvUpdated"></span>
+  </div>
+</div>
+
 <script>
 /* ================= 데이터 (index.html과 동일) ================= */
 const TEAMS = [
@@ -175,6 +253,8 @@ const MATCHES = [
 const params = new URLSearchParams(location.search);
 let state = { rev:0, total:16, scores:{}, partners:{} };
 let room = params.get("room") || localStorage.getItem("pc_room") || "0703";
+let tvMode = params.get("tv")==="1" || localStorage.getItem("pc_ptv")==="1";
+let lastChange = 0;
 
 function loadLocal(){
   try{ const s = JSON.parse(localStorage.getItem("pc_state_"+room)); if(s && typeof s.rev==="number") state = s; }catch(e){}
@@ -191,6 +271,9 @@ const topic = () => "padelsociety/couple/" + room + "/state";
 function setSync(on, text){
   document.getElementById("syncDot").className = "dot " + (on?"on":"off");
   document.getElementById("syncText").textContent = text;
+  const td=document.getElementById("tvSyncDot"), tt=document.getElementById("tvSyncText");
+  if(td) td.className = "tvdot " + (on?"on":"off");
+  if(tt) tt.textContent = text;
 }
 function connectSync(){
   if(typeof mqtt === "undefined"){ setSync(false,"오프라인"); return; }
@@ -211,7 +294,7 @@ function connectSync(){
       const remote = JSON.parse(msg.toString());
       if(typeof remote.rev==="number" && remote.rev > state.rev){
         state = remote; if(!state.partners) state.partners={};
-        gotRemote = true; saveLocal(); render();
+        gotRemote = true; lastChange = Date.now(); saveLocal(); render();
       } else { gotRemote = true; }
     }catch(e){}
   });
@@ -230,6 +313,7 @@ function commit(mutate){
   if(!state.partners) state.partners={};
   mutate();
   state.rev = Math.max(state.rev+1, Date.now());
+  lastChange = Date.now();
   publish(); render();
 }
 (function(){
@@ -262,6 +346,7 @@ const doneCount = () => Object.keys(state.scores).length;
 
 /* ================= 렌더 ================= */
 function render(){
+  document.body.classList.toggle("tv", tvMode);
   const rows = standings();
   const order = rows.slice().reverse();          // 꼴찌 → 1등 (선정 순서)
   const picks = state.partners || {};            // {아내팀: 남편팀}
@@ -319,7 +404,86 @@ function render(){
 
   // 취소 버튼: 고른 게 있을 때만
   document.getElementById("undoBtn").disabled = pickedCount===0;
+
+  if(tvMode) renderTV(rows, order, picks, cur, scoreDone);
 }
+
+/* ================= TV 렌더 ================= */
+function renderTV(rows, order, picks, cur, scoreDone){
+  document.getElementById("tvProg").textContent = Object.keys(picks).length + " / 6";
+  const taken = new Set(Object.values(picks).map(Number));
+  const main = document.getElementById("tvMain");
+
+  if(cur){
+    const wife = PEOPLE[cur.i].wife;
+    const stepNo = order.indexOf(cur) + 1;
+    const remaining = TEAMS.map((_,ti)=>ti).filter(ti=> !taken.has(ti));
+    const selectable = remaining.filter(ti=> ti!==cur.i);
+    let grid = "";
+    remaining.forEach(ti=>{
+      const husband = PEOPLE[ti].husband;
+      if(ti===cur.i){
+        grid += "<div class='tvhcard own'><span class='hn'>"+husband+"</span><span class='ht'>본인 남편 ✕</span></div>";
+      } else {
+        grid += "<div class='tvhcard' style='border-color:"+TEAMS[ti].c+";color:"+TEAMS[ti].c+"'>"
+          + "<span class='hn'>"+husband+"</span><span class='ht'>"+TEAMS[ti].n+"</span></div>";
+      }
+    });
+    main.className = "tvpanel tvmain";
+    main.innerHTML = "<div class='tvstep'>선정 순서 "+stepNo+"번째"+(scoreDone?" · 부부매치 "+cur.rank+"위":"")+"</div>"
+      + "<div class='tvwife' style='color:"+cur.c+"'>"+wife+"</div>"
+      + (selectable.length===0
+          ? "<div class='tvwarn'>😅 남은 남편이 본인 남편뿐입니다.<br>폰에서 <b>↩ 방금 취소</b>로 앞 순서를 다시 골라 주세요.</div>"
+          : "<div class='tvwifesub'><b>"+wife+"</b> 님, 파트너로 삼을 <b>남편</b>을 고르세요</div>"
+            + "<div class='tvhgrid'>"+grid+"</div>");
+  } else {
+    let pairs = "";
+    order.slice().reverse().forEach(r=>{
+      const wife = PEOPLE[r.i].wife, hTeam = picks[r.i], husband = PEOPLE[hTeam].husband;
+      pairs += "<div class='tvpairBig'><span class='pb' style='border-color:"+r.c+";color:"+r.c+"'>"+wife+"</span>"
+        + "<span class='hb'>♥</span><span class='pb' style='border-color:"+TEAMS[hTeam].c+";color:"+TEAMS[hTeam].c+"'>"+husband+"</span></div>";
+    });
+    main.className = "tvpanel tvcelebrate";
+    main.innerHTML = "<div class='sub'>FAKE COUPLES</div><div class='big'>🎉 가짜부부 완성!</div>"+pairs;
+  }
+
+  let ol = "";
+  order.forEach((r,idx)=>{
+    const wife = PEOPLE[r.i].wife;
+    const isCur = cur && cur.i===r.i;
+    const done = picks[r.i]!==undefined;
+    let pk;
+    if(done){ const h = PEOPLE[picks[r.i]].husband;
+      pk = "<span class='pk'>"+wife+"<span class='hb'>♥</span><span style='color:"+TEAMS[picks[r.i]].c+"'>"+h+"</span></span>"; }
+    else if(isCur){ pk = "<span class='pk'>▶ 선택 중</span>"; }
+    else { pk = "<span class='pk wait'>대기</span>"; }
+    ol += "<div class='tvorow "+(done?"done ":"")+(isCur?"cur":"")+"'><span class='on'>"+(idx+1)+"</span>"
+      + "<span class='wf'><span style='display:inline-block;width:1.4vh;height:1.4vh;border-radius:50%;background:"
+        + r.c+";margin-right:.7vw;flex:none'></span>"+wife+"</span>"+pk+"</div>";
+  });
+  document.getElementById("tvOrder").innerHTML = ol;
+}
+
+/* TV 모드 토글 */
+function setTv(on){
+  tvMode = on;
+  localStorage.setItem("pc_ptv", on?"1":"0");
+  render();
+  if(on && document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen().catch(()=>{}); }
+}
+let lastTap = 0;
+document.querySelector(".tvwrap").addEventListener("click", ()=>{
+  const now = Date.now();
+  if(now-lastTap<400){ setTv(false); if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
+  lastTap = now;
+});
+setInterval(()=>{
+  const up = document.getElementById("tvUpdated");
+  if(!up) return;
+  if(lastChange){ const s = Math.round((Date.now()-lastChange)/1000);
+    up.textContent = "🔄 " + (s<2 ? "방금 갱신" : s<60 ? s+"초 전 갱신" : Math.floor(s/60)+"분 전 갱신"); }
+  else up.textContent = "";
+}, 1000);
 
 function renderPicker(cur, taken, stepNo, scoreDone){
   const wife = PEOPLE[cur.i].wife;
