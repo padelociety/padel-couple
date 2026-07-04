@@ -173,7 +173,14 @@
   .tvnext .no{color:var(--gold-2);font-weight:700;width:3.4vh;flex:none}
   .tvnext .t{flex:1;text-align:center;white-space:nowrap;overflow:hidden}
   .tvnext .sc{font-weight:800;color:var(--gold-2);width:8vh;text-align:right;flex:none}
-  .tvfoot{flex:none;text-align:center;letter-spacing:.8vh;font-size:1.6vh;color:var(--dim);padding-top:1.4vh}
+  .tvfoot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:2vw;
+    font-size:1.6vh;color:var(--dim);padding-top:1.4vh}
+  .tvfoot .brand{letter-spacing:.8vh}
+  .tvsync{display:inline-flex;align-items:center;gap:.7vw;white-space:nowrap}
+  .tvdot{width:1.2vh;height:1.2vh;border-radius:50%;background:#999;flex:none}
+  .tvdot.on{background:var(--ok);box-shadow:0 0 1vh var(--ok)}
+  .tvdot.off{background:var(--warn)}
+  #tvUpdated{color:var(--gold-2);white-space:nowrap;min-width:11vw;text-align:right}
 </style>
 </head>
 <body>
@@ -234,7 +241,11 @@
       </div>
     </div>
   </div>
-  <div class="tvfoot">PADEL SOCIETY</div>
+  <div class="tvfoot">
+    <span class="tvsync"><span class="tvdot" id="tvSyncDot"></span><span id="tvSyncText">연결 중…</span></span>
+    <span class="brand">PADEL SOCIETY</span>
+    <span class="tvsync" id="tvUpdated"></span>
+  </div>
 </div>
 
 <!-- ================= 점수 입력 시트 ================= -->
@@ -303,6 +314,7 @@ const params = new URLSearchParams(location.search);
 let state = { rev:0, total:16, scores:{} };   // scores: {"0":[9,7], ...}
 let room = params.get("room") || localStorage.getItem("pc_room") || "0703";
 let tvMode = params.get("tv") === "1" || localStorage.getItem("pc_tv") === "1";
+let lastChange = 0;   // 데이터가 마지막으로 바뀐 시각 (진단용)
 
 function loadLocal(){
   try{ const s = JSON.parse(localStorage.getItem("pc_state_"+room)); if(s && typeof s.rev==="number") state = s; }catch(e){}
@@ -318,6 +330,9 @@ const topic = () => "padelsociety/couple/" + room + "/state";
 function setSync(on, text){
   document.getElementById("syncDot").className = "dot " + (on?"on":"off");
   document.getElementById("syncText").textContent = text;
+  const td = document.getElementById("tvSyncDot"), tt = document.getElementById("tvSyncText");
+  if(td) td.className = "tvdot " + (on?"on":"off");
+  if(tt) tt.textContent = text;
 }
 function connectSync(){
   if(typeof mqtt === "undefined"){ setSync(false,"오프라인 · 이 기기에만 저장"); return; }
@@ -339,7 +354,7 @@ function connectSync(){
     try{
       const remote = JSON.parse(msg.toString());
       if(typeof remote.rev==="number" && remote.rev > state.rev){
-        state = remote; gotRemote = true; saveLocal(); render();
+        state = remote; gotRemote = true; lastChange = Date.now(); saveLocal(); render();
       } else { gotRemote = true; }
     }catch(e){}
   });
@@ -360,6 +375,7 @@ function publish(){
 function commit(mutate){
   mutate();
   state.rev = Math.max(state.rev+1, Date.now());
+  lastChange = Date.now();
   publish(); render();
 }
 
@@ -502,6 +518,13 @@ function renderTV(rows, ni, done){
 setInterval(()=>{
   const el = document.getElementById("tvClock");
   if(el){ const d=new Date(); el.textContent = String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+  const up = document.getElementById("tvUpdated");
+  if(up){
+    if(lastChange){
+      const s = Math.round((Date.now()-lastChange)/1000);
+      up.textContent = "🔄 " + (s<2 ? "방금 갱신" : s<60 ? s+"초 전 갱신" : Math.floor(s/60)+"분 전 갱신");
+    } else up.textContent = "";
+  }
 },1000);
 
 /* ================= 모드 ================= */
