@@ -47,8 +47,8 @@
   .dot.on{background:var(--ok);box-shadow:0 0 6px var(--ok)}
   .dot.off{background:#999}
 
-  .modeswitch{display:flex;justify-content:center;gap:8px;margin:10px 0}
-  .modeswitch button{border:1px solid var(--line);border-radius:10px;padding:8px 18px;font-size:14px;font-weight:700;
+  .modeswitch{display:flex;justify-content:center;gap:7px;margin:10px 0;flex-wrap:wrap}
+  .modeswitch button{border:1px solid var(--line);border-radius:10px;padding:8px 13px;font-size:13px;font-weight:700;
     color:var(--dim);background:var(--panel)}
   .modeswitch button.active{color:#153726;background:var(--gold-2);border-color:var(--gold-2)}
 
@@ -181,6 +181,22 @@
   .tvdot.on{background:var(--ok);box-shadow:0 0 1vh var(--ok)}
   .tvdot.off{background:var(--warn)}
   #tvUpdated{color:var(--gold-2);white-space:nowrap;min-width:11vw;text-align:right}
+
+  /* ===== TV 통합(스케줄) 모드 ===== */
+  body.tv-sched .tvgrid{grid-template-columns:9fr 7fr 6fr}
+  .tvsched{display:none}
+  body.tv-sched .tvsched{display:flex}
+  .tvschedlist{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;min-height:0}
+  .tvsi{display:flex;gap:.8vw;align-items:center;padding:.4vh .6vw;border-radius:1vh}
+  .tvsi .tm{flex:none;background:var(--panel-2);color:var(--gold-2);font-weight:800;font-size:1.7vh;
+    border-radius:.7vh;padding:.6vh 0;min-width:5.4vw;text-align:center}
+  .tvsi .bd{flex:1;min-width:0}
+  .tvsi .tt{font-size:2vh;font-weight:700;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tvsi .td{font-size:1.5vh;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tvsi.past{opacity:.4}
+  .tvsi.now{background:rgba(212,175,55,.12)}
+  .tvsi.now .tm{background:var(--gold-2);color:#153726}
+  .tvsi.now .tt{color:var(--gold-2)}
 </style>
 </head>
 <body>
@@ -199,8 +215,9 @@
   </div>
 
   <div class="modeswitch">
-    <button class="active" onclick="setMode(false)">✏️ 점수 입력</button>
-    <button onclick="setMode(true)">📺 TV 모드</button>
+    <button data-mode="input" class="active" onclick="setMode('input')">✏️ 입력</button>
+    <button data-mode="score" onclick="setMode('score')">📺 스코어보드</button>
+    <button data-mode="full" onclick="setMode('full')">📋 +스케줄</button>
   </div>
 
   <div class="card">
@@ -239,6 +256,10 @@
         <h2>경기 결과 · 예정</h2>
         <div id="tvList" style="overflow:hidden;flex:1"></div>
       </div>
+    </div>
+    <div class="tvpanel tvsched">
+      <h2>SCHEDULE</h2>
+      <div class="tvschedlist" id="tvSchedList"></div>
     </div>
   </div>
   <div class="tvfoot">
@@ -308,12 +329,29 @@ const MATCHES = [
   [2,3],[0,4],[5,3],[1,2],[0,3],
   [4,2],[5,1],[0,2],[3,1],[4,5],
 ];
+// 스케줄 (시간, 제목, 설명) — TV 통합 모드에서 표시
+const SCHEDULE = [
+  ["14:00","입장","대관비 · 순서 선정 · 마니또 제출"],
+  ["14:30","원래 부부 매치","음주 시작"],
+  ["16:30","가짜 부부 팀 선정","음식 주문"],
+  ["17:00","가짜 부부 매치","빠델 with 술·음식"],
+  ["19:00","매치 종료","마니또 선물 공개"],
+  ["19:30","뒷정리","남자들: 바닥 청소"],
+  ["20:00","해산",""],
+];
 
 /* ================= 상태 ================= */
 const params = new URLSearchParams(location.search);
 let state = { rev:0, total:16, scores:{} };   // scores: {"0":[9,7], ...}
 let room = params.get("room") || localStorage.getItem("pc_room") || "0703";
-let tvMode = params.get("tv") === "1" || localStorage.getItem("pc_tv") === "1";
+// 모드: tv=1 스코어보드 / tv=2 스코어보드+스케줄 / 없으면 입력
+let tvMode, tvSchedule;
+(function(){
+  const p = params.get("tv"), saved = localStorage.getItem("pc_tv");
+  if(p==="2"){ tvMode=true; tvSchedule=true; }
+  else if(p==="1"){ tvMode=true; tvSchedule=false; }
+  else { tvMode = (saved==="1"||saved==="2"); tvSchedule = (saved==="2"); }
+})();
 let lastChange = 0;   // 데이터가 마지막으로 바뀐 시각 (진단용)
 
 function loadLocal(){
@@ -425,6 +463,7 @@ function teamTag(i, extra){
 }
 function render(){
   document.body.classList.toggle("tv", tvMode);
+  document.body.classList.toggle("tv-sched", tvSchedule);
   const done = doneCount();
   document.getElementById("progText").textContent = done + " / " + MATCHES.length + " 완료";
 
@@ -465,7 +504,25 @@ function render(){
   });
   document.getElementById("matchList").innerHTML = mh;
 
-  if(tvMode) renderTV(rows, ni, done);
+  if(tvMode){ renderTV(rows, ni, done); if(tvSchedule) renderSchedule(); }
+}
+
+/* ================= 스케줄 (TV 통합 모드) ================= */
+function renderSchedule(){
+  const el = document.getElementById("tvSchedList");
+  if(!el) return;
+  const d = new Date(), mins = d.getHours()*60 + d.getMinutes();
+  const toMin = s => { const p=s.split(":"); return (+p[0])*60 + (+p[1]); };
+  let curIdx = -1;
+  SCHEDULE.forEach((s,i)=>{ if(toMin(s[0]) <= mins) curIdx = i; });
+  let h = "";
+  SCHEDULE.forEach((s,i)=>{
+    const cls = i===curIdx ? "now" : (i<curIdx ? "past" : "");
+    h += "<div class='tvsi "+cls+"'><span class='tm'>"+s[0]+"</span>"
+      + "<span class='bd'><div class='tt'>"+s[1]+"</div>"
+      + (s[2] ? "<div class='td'>"+s[2]+"</div>" : "") + "</span></div>";
+  });
+  el.innerHTML = h;
 }
 
 /* ================= 렌더 (TV) ================= */
@@ -525,20 +582,23 @@ setInterval(()=>{
       up.textContent = "🔄 " + (s<2 ? "방금 갱신" : s<60 ? s+"초 전 갱신" : Math.floor(s/60)+"분 전 갱신");
     } else up.textContent = "";
   }
+  if(tvSchedule) renderSchedule();
 },1000);
 
 /* ================= 모드 ================= */
-function setMode(tv){
-  tvMode = tv; localStorage.setItem("pc_tv", tv?"1":"0");
-  document.querySelectorAll(".modeswitch button").forEach((b,i)=>b.classList.toggle("active", (i===1)===tv));
+function setMode(view){   // "input" | "score" | "full"
+  tvMode = (view !== "input");
+  tvSchedule = (view === "full");
+  localStorage.setItem("pc_tv", view==="full" ? "2" : view==="score" ? "1" : "0");
+  document.querySelectorAll(".modeswitch button").forEach(b=> b.classList.toggle("active", b.dataset.mode===view));
   render();
-  if(tv && document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen().catch(()=>{}); }
+  if(tvMode && document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen().catch(()=>{}); }
 }
 // TV모드에서 화면 아무데나 두 번 탭 → 입력모드 복귀
 let lastTap=0;
 document.querySelector(".tvwrap").addEventListener("click", ()=>{
   const now = Date.now();
-  if(now-lastTap<400){ setMode(false); if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
+  if(now-lastTap<400){ setMode("input"); if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
   lastTap = now;
 });
 
@@ -623,7 +683,10 @@ function resetAll(){
 }
 
 /* ================= 시작 ================= */
-document.querySelectorAll(".modeswitch button").forEach((b,i)=>b.classList.toggle("active",(i===1)===tvMode));
+(function(){
+  const v = tvSchedule ? "full" : tvMode ? "score" : "input";
+  document.querySelectorAll(".modeswitch button").forEach(b=> b.classList.toggle("active", b.dataset.mode===v));
+})();
 render();
 </script>
 </body>
