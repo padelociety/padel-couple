@@ -21,6 +21,7 @@
     --line:rgba(212,175,55,.35); --line-soft:rgba(255,255,255,.12);
     --gold:#d4af37; --gold-2:#e8c66a; --cream:#f5edd8; --dim:rgba(245,237,216,.6);
     --ok:#7ed491; --warn:#e8a06a;
+    --teamA:#6db3e8; --teamB:#e8896d;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
@@ -215,6 +216,40 @@
   .tvguard .tt{font-size:4.2vh;font-weight:800;color:var(--gold-2)}
   .tvguard .ts{font-size:2.2vh;color:var(--dim)}
   .tvguard .ts span{color:var(--gold-2);font-weight:700}
+
+  /* ===== 내기 (두 팀 합산) ===== */
+  .betbox{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .betcol{border:1.5px solid var(--line-soft);border-radius:14px;padding:12px 10px;text-align:center}
+  .betcol.lead{background:rgba(212,175,55,.07)}
+  .betname{font-size:14px;font-weight:800;margin-bottom:4px}
+  .betbig{font-size:30px;font-weight:800;color:var(--cream);line-height:1}
+  .betbig small{font-size:14px;color:var(--dim);font-weight:600;margin-left:2px}
+  .betsub{font-size:12px;color:var(--dim);margin:4px 0 8px}
+  .betmembers{border-top:1px solid var(--line-soft);padding-top:8px;text-align:left}
+  .betm{font-size:12.5px;padding:3px 0;color:var(--cream);display:flex;justify-content:space-between;gap:6px}
+  .betm .betmp{color:var(--dim)}
+  .betresult{text-align:center;font-weight:800;color:var(--gold-2);margin-top:10px;font-size:15px}
+  /* 팀 나누기 */
+  .tsrow{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--line-soft)}
+  .tsrow:first-child{border-top:none}
+  .tsname{font-size:14px;font-weight:600}
+  .tsbtns{display:flex;gap:6px}
+  .tsb{width:42px;height:34px;border-radius:9px;border:1px solid var(--line-soft);color:var(--dim);font-weight:800;font-size:14px}
+  .tsb.on.a{background:var(--teamA);color:#0a2f24;border-color:var(--teamA)}
+  .tsb.on.b{background:var(--teamB);color:#0a2f24;border-color:var(--teamB)}
+  .splitnote{font-size:12px;color:var(--dim);margin-top:10px;text-align:center}
+  .splitcount{font-weight:700;color:var(--cream)}
+  /* TV 내기 바 */
+  .tvbet{flex:none;display:flex;align-items:center;justify-content:center;gap:1.6vw;margin:.8vh 0;
+    font-size:2.3vh;padding:1vh 1.4vw;background:var(--panel);border:1px solid var(--line-soft);border-radius:1.2vh}
+  body.tv.notready .tvbet{display:none}
+  .tvbet .tb{display:inline-flex;align-items:baseline;gap:.5vw;color:var(--cream);opacity:.7}
+  .tvbet .tb b{font-size:3.4vh;font-weight:800}
+  .tvbet .tb i{font-style:normal;font-size:1.7vh;color:var(--dim)}
+  .tvbet .tba b{color:var(--teamA)}
+  .tvbet .tbb b{color:var(--teamB)}
+  .tvbet .tb.lead{opacity:1}
+  .tvbet .tbvs{font-size:1.7vh;letter-spacing:.4vh;color:var(--gold);font-weight:700}
 </style>
 </head>
 <body>
@@ -247,10 +282,23 @@
 
   <div id="board">
     <div class="card">
+      <h2>내기 현황 · 두 팀 합산</h2>
+      <div class="betbox" id="betBox"></div>
+      <div class="betresult" id="betResult"></div>
+    </div>
+
+    <div class="card">
       <h2>순위표</h2>
       <div class="standwrap"><table id="standTable"></table></div>
     </div>
+
     <div id="matchList"></div>
+
+    <div class="card">
+      <h2>팀 나누기 · <span class="splitcount" id="splitCount"></span></h2>
+      <div id="splitBox"></div>
+      <div class="splitnote">각 커플을 A팀 / B팀으로 나눠 내기하세요 (기본 3 : 3)</div>
+    </div>
   </div>
 
   <a class="navlink" id="indexLink" href="index.html">🏓 부부매치 점수판 &nbsp;<small>1부 →</small></a>
@@ -276,6 +324,7 @@
     <div class="pbar"><div id="tvProgBar" style="width:0%"></div></div>
     <span class="ptext" id="tvClock"></span>
   </div>
+  <div class="tvbet" id="tvBet"></div>
   <div class="tvgrid">
     <div class="tvpanel">
       <h2>순위표</h2>
@@ -502,6 +551,58 @@ function standings(){
 const doneCount = () => Object.keys(state.scores2).length;
 const nowIdx = () => MATCHES.findIndex((_,i)=> !state.scores2[i]);
 
+/* ================= 내기: 두 팀 합산 ================= */
+const TEAM_NAME = { A:"A팀", B:"B팀" };
+// 커플 슬롯 i(0~5) → 'A'/'B'. 기본 0,1,2=A / 3,4,5=B
+function teamOf(i){ const t = state.teams2||{}; if(t[i]==="A") return "A"; if(t[i]==="B") return "B"; return i<3 ? "A" : "B"; }
+function betTotals(rows){
+  const T = { A:{mp:0,gf:0,win:0,list:[]}, B:{mp:0,gf:0,win:0,list:[]} };
+  rows.forEach(r=>{ const g = teamOf(r.i); T[g].mp+=r.mp; T[g].gf+=r.gf; T[g].win+=r.win; T[g].list.push(r); });
+  return T;
+}
+function betLead(T){
+  if(T.A.mp===T.B.mp && T.A.gf===T.B.gf) return "tie";
+  if(T.A.mp>T.B.mp || (T.A.mp===T.B.mp && T.A.gf>T.B.gf)) return "A";
+  return "B";
+}
+function setTeam(i, g){
+  commit(()=>{ const t={}; for(let k=0;k<6;k++) t[k]=teamOf(k); t[i]=g; state.teams2=t; });
+}
+function renderBet(rows){
+  const T = betTotals(rows), lead = betLead(T);
+  function col(g){
+    const d = T[g], isLead = lead===g;
+    const members = d.list.map(r=>"<div class='betm'><span><span class='chip' style='background:"+r.c+"'></span>"+r.name+"</span><span class='betmp'>"+r.mp+"점·"+r.gf+"게임</span></div>").join("");
+    return "<div class='betcol"+(isLead?" lead":"")+"' style='border-color:var(--team"+g+")'>"
+      + "<div class='betname' style='color:var(--team"+g+")'>"+TEAM_NAME[g]+(isLead?" 👑":"")+"</div>"
+      + "<div class='betbig'>"+d.mp+"<small>점</small></div>"
+      + "<div class='betsub'>게임 "+d.gf+" · "+d.win+"승</div>"
+      + "<div class='betmembers'>"+members+"</div></div>";
+  }
+  document.getElementById("betBox").innerHTML = col("A")+col("B");
+  document.getElementById("betResult").textContent = lead==="tie" ? "🤝 동점" : TEAM_NAME[lead]+" 리드!";
+}
+function renderTeamSplit(){
+  let h="", ca=0, cb=0;
+  for(let i=0;i<6;i++){
+    const g = teamOf(i); if(g==="A") ca++; else cb++;
+    h += "<div class='tsrow'><span class='tsname'><span class='chip' style='background:"+ORIG_TEAMS[i].c+"'></span>"+TEAMS[i].n+"</span>"
+      + "<span class='tsbtns'>"
+      + "<button class='tsb"+(g==="A"?" on a":"")+"' onclick='setTeam("+i+",\"A\")'>A</button>"
+      + "<button class='tsb"+(g==="B"?" on b":"")+"' onclick='setTeam("+i+",\"B\")'>B</button>"
+      + "</span></div>";
+  }
+  document.getElementById("splitBox").innerHTML = h;
+  document.getElementById("splitCount").innerHTML = "<span style='color:var(--teamA)'>A "+ca+"</span> : <span style='color:var(--teamB)'>B "+cb+"</span>";
+}
+function renderTVBet(rows){
+  const el = document.getElementById("tvBet"); if(!el) return;
+  const T = betTotals(rows), lead = betLead(T);
+  el.innerHTML = "<span class='tb tba"+(lead==="A"?" lead":"")+"'>A팀 <b>"+T.A.mp+"</b>점 <i>게임 "+T.A.gf+"</i></span>"
+    + "<span class='tbvs'>내기 VS</span>"
+    + "<span class='tb tbb"+(lead==="B"?" lead":"")+"'>B팀 <b>"+T.B.mp+"</b>점 <i>게임 "+T.B.gf+"</i></span>";
+}
+
 /* ================= 렌더 (폰) ================= */
 function teamTag(i, extra){
   const t = TEAMS[i];
@@ -545,6 +646,9 @@ function render(){
   });
   document.getElementById("standTable").innerHTML = h;
 
+  renderBet(rows);
+  renderTeamSplit();
+
   // 경기 리스트
   const ni = nowIdx();
   let mh = "";
@@ -561,7 +665,7 @@ function render(){
   });
   document.getElementById("matchList").innerHTML = mh;
 
-  if(tvMode){ renderTV(rows, ni, done); if(tvSchedule) renderSchedule(); }
+  if(tvMode){ renderTV(rows, ni, done); renderTVBet(rows); if(tvSchedule) renderSchedule(); }
 }
 
 /* ================= 스케줄 (TV 통합 모드) ================= */
