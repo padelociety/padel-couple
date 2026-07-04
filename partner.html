@@ -245,14 +245,14 @@ function commit(mutate){
 
 /* ================= 순위 계산 (index.html과 동일 로직) ================= */
 function standings(){
-  const rows = TEAMS.map((t,i)=>({i, name:t.n, c:t.c, win:0, mp:0, gf:0, ga:0, gd:0}));
+  const rows = TEAMS.map((t,i)=>({i, name:t.n, c:t.c, win:0, draw:0, mp:0, gf:0, ga:0, gd:0}));
   MATCHES.forEach((m,mi)=>{
     const sc = state.scores[mi]; if(!sc) return;
     const [a,b]=sc, [ta,tb]=m;
     rows[ta].gf+=a; rows[tb].gf+=b; rows[ta].ga+=b; rows[tb].ga+=a;
-    if(a>b) rows[ta].win++; else if(b>a) rows[tb].win++;
+    if(a>b) rows[ta].win++; else if(b>a) rows[tb].win++; else { rows[ta].draw++; rows[tb].draw++; }
   });
-  rows.forEach(r=>{ r.mp=r.win*3; r.gd=r.gf-r.ga; });
+  rows.forEach(r=>{ r.mp=r.win*3 + r.draw; r.gd=r.gf-r.ga; });   // 승 3점 + 무 1점
   rows.forEach(r=>{ r.rank = rows.filter(o=>o.mp>r.mp).length
                            + rows.filter(o=>o.mp===r.mp && o.gd>r.gd).length + 1; });
   rows.sort((x,y)=> y.mp-x.mp || y.gd-x.gd || y.gf-x.gf);

@@ -56,7 +56,7 @@
   .card{background:var(--panel);border:1px solid var(--line-soft);border-radius:16px;padding:14px;margin:12px 0}
   .card h2{font-size:13px;letter-spacing:3px;color:var(--gold);font-weight:700;margin-bottom:10px;text-align:center}
   .standwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{width:100%;border-collapse:collapse;min-width:360px}
+  table{width:100%;border-collapse:collapse;min-width:400px}
   th{font-size:11px;color:var(--dim);font-weight:600;padding:5px 4px;text-align:center;white-space:nowrap}
   td{padding:9px 4px;text-align:center;font-size:14px;border-top:1px solid var(--line-soft);white-space:nowrap}
   td.teamcell{text-align:left;white-space:nowrap;padding-left:6px;font-size:13.5px}
@@ -143,7 +143,7 @@
     display:flex;flex-direction:column;min-height:0}
   .tvpanel h2{font-size:2vh;letter-spacing:.6vh;color:var(--gold);text-align:center;margin-bottom:1.4vh;flex:none}
   .tvstand{flex:1;display:flex;flex-direction:column;justify-content:center;gap:.3vh;min-height:0}
-  .tvsrow{display:grid;grid-template-columns:5vh minmax(0,1.6fr) repeat(7, minmax(0,1fr));
+  .tvsrow{display:grid;grid-template-columns:5vh minmax(0,1.6fr) repeat(8, minmax(0,1fr));
     align-items:center;gap:.3vw;font-size:2.7vh;padding:.7vh .5vw;border-radius:1vh}
   .tvsrow>span{text-align:center;white-space:nowrap;overflow:hidden}
   .tvsrow .rk{width:4.5vh;height:4.5vh;justify-self:start;border-radius:50%;border:.3vh solid var(--line);
@@ -430,8 +430,8 @@ function commit(mutate){
   tryLoad();
 })();
 
-/* ================= 계산 (구글시트 순위표 로직) =================
-   승점 = 승×3  |  득실차 = 총득점-총실점
+/* ================= 계산 (순위표 로직) =================
+   승점 = 승×3 + 무×1  |  득실차 = 총득점-총실점
    순위 = ① 승점  ② 득실차  (동점 시 같은 순위) */
 function standings(){
   const rows = TEAMS.map((t,i)=>({i, name:t.n, c:t.c, played:0, win:0, loss:0, draw:0, mp:0, gf:0, ga:0, gd:0}));
@@ -445,7 +445,7 @@ function standings(){
     else if(b>a){ rows[tb].win++; rows[ta].loss++; }
     else { rows[ta].draw++; rows[tb].draw++; }
   });
-  rows.forEach(r=>{ r.mp = r.win*3; r.gd = r.gf - r.ga; });
+  rows.forEach(r=>{ r.mp = r.win*3 + r.draw; r.gd = r.gf - r.ga; });   // 승 3점 + 무 1점
   // 순위: 승점 > 득실차 (구글시트 COUNTIFS 방식, 동점은 같은 순위)
   rows.forEach(r=>{ r.rank = rows.filter(o=>o.mp>r.mp).length
                            + rows.filter(o=>o.mp===r.mp && o.gd>r.gd).length + 1; });
@@ -470,13 +470,13 @@ function render(){
   // 순위표
   const rows = standings();
   const anyPlayed = rows.some(r=>r.played>0);
-  let h = "<tr><th>순위</th><th style='text-align:left'>팀</th><th>경기</th><th>승</th><th>패</th>"
+  let h = "<tr><th>순위</th><th style='text-align:left'>팀</th><th>경기</th><th>승</th><th>무</th><th>패</th>"
         + "<th>승점</th><th>득점</th><th>실점</th><th>득실</th></tr>";
   rows.forEach((r)=>{
     const gdCls = r.gd>0?"gd-pos":(r.gd<0?"gd-neg":"");
     h += "<tr class='"+(r.rank===1&&anyPlayed?"rank1":"")+"'><td>"+r.rank+"</td>"
       + "<td class='teamcell'><span class='chip' style='background:"+r.c+"'></span>"+r.name+"</td>"
-      + "<td>"+r.played+"</td><td>"+r.win+"</td><td>"+r.loss+"</td>"
+      + "<td>"+r.played+"</td><td>"+r.win+"</td><td>"+r.draw+"</td><td>"+r.loss+"</td>"
       + "<td class='mp'>"+r.mp+"</td><td>"+r.gf+"</td><td>"+r.ga+"</td>"
       + "<td class='"+gdCls+"'>"+(r.gd>0?"+":"")+r.gd+"</td></tr>";
   });
@@ -532,14 +532,14 @@ function renderTV(rows, ni, done){
 
   const anyPlayed = rows.some(r=>r.played>0);
   let sh = "<div class='tvsrow head'><span></span><span class='nm'>팀</span>"
-    + "<span>경기</span><span>승</span><span>패</span><span class='mp'>승점</span>"
+    + "<span>경기</span><span>승</span><span>무</span><span>패</span><span class='mp'>승점</span>"
     + "<span>득점</span><span>실점</span><span>득실</span></div>";
   rows.forEach((r)=>{
     const gdCls = r.gd>0?"gd-pos":(r.gd<0?"gd-neg":"");
     sh += "<div class='tvsrow "+(r.rank===1&&anyPlayed?"r1":"")+"'>"
       + "<span class='rk'>"+r.rank+"</span>"
       + "<span class='nm'><span class='chip' style='background:"+r.c+"'></span>"+r.name+"</span>"
-      + "<span>"+r.played+"</span><span>"+r.win+"</span><span>"+r.loss+"</span>"
+      + "<span>"+r.played+"</span><span>"+r.win+"</span><span>"+r.draw+"</span><span>"+r.loss+"</span>"
       + "<span class='mp'>"+r.mp+"</span><span>"+r.gf+"</span><span>"+r.ga+"</span>"
       + "<span class='"+gdCls+"'>"+(r.gd>0?"+":"")+r.gd+"</span></div>";
   });
