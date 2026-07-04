@@ -200,6 +200,8 @@
     </div>
   </div>
 
+  <a class="backlink" id="fakeLink" href="fake.html" style="display:block;text-align:center;margin:6px 0 0;padding:13px;font-size:14px;font-weight:700;color:var(--gold-2);border-color:var(--line)">🏆 가짜부부 매치 점수판 →</a>
+
   <footer>PADEL SOCIETY</footer>
 </div>
 
@@ -263,6 +265,7 @@ function loadLocal(){
 function saveLocal(){ localStorage.setItem("pc_state_"+room, JSON.stringify(state)); }
 loadLocal();
 document.getElementById("backLink").href = "index.html?room=" + encodeURIComponent(room);
+document.getElementById("fakeLink").href = "fake.html?room=" + encodeURIComponent(room);
 
 /* ================= 동기화 ================= */
 const BROKERS = ["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];

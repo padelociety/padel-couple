@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="부부매치">
 <meta name="theme-color" content="#0a2f24">
-<title>부부매치 · Padel Society</title>
+<title>가짜부부 매치 · Padel Society</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -197,6 +197,24 @@
   .tvsi.now{background:rgba(212,175,55,.12)}
   .tvsi.now .tm{background:var(--gold-2);color:#153726}
   .tvsi.now .tt{color:var(--gold-2)}
+
+  /* ===== 선정 미완료 안내 ===== */
+  #guard{display:none;text-align:center;padding:28px 18px}
+  body.notready #guard{display:block}
+  body.notready #board{display:none}
+  .guardIcon{font-size:40px;margin-bottom:8px}
+  .guardTitle{font-size:18px;font-weight:800;color:var(--gold-2);margin-bottom:8px}
+  .guardSub{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:16px}
+  .guardSub span{color:var(--gold-2);font-weight:700}
+  .tvguard{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1.6vh}
+  body.tv.notready .tvguard{display:flex}
+  body.tv.notready .tvprogress,
+  body.tv.notready .tvgrid,
+  body.tv.notready .tvfoot{display:none}
+  .tvguard .ti{font-size:9vh}
+  .tvguard .tt{font-size:4.2vh;font-weight:800;color:var(--gold-2)}
+  .tvguard .ts{font-size:2.2vh;color:var(--dim)}
+  .tvguard .ts span{color:var(--gold-2);font-weight:700}
 </style>
 </head>
 <body>
@@ -205,8 +223,8 @@
 <div class="wrap">
   <header>
     <img class="logo" src="logo.png" alt="Padel Society">
-    <div class="title">부부매치</div>
-    <div class="subtitle">ROUND ROBIN · AMERICANO</div>
+    <div class="title">가짜부부 매치</div>
+    <div class="subtitle">FAKE COUPLES · REMATCH</div>
   </header>
 
   <div class="statusbar">
@@ -220,16 +238,23 @@
     <button data-mode="full" onclick="setMode('full')">📋 +스케줄</button>
   </div>
 
-  <div class="card">
-    <h2>순위표</h2>
-    <div class="standwrap"><table id="standTable"></table></div>
+  <div id="guard" class="card">
+    <div class="guardIcon">🔒</div>
+    <div class="guardTitle">가짜부부 선정을 먼저 완료하세요</div>
+    <div class="guardSub">6쌍이 모두 정해지면 이 점수판이 자동으로 열립니다.<br><span id="guardProg">0 / 6 선정됨</span></div>
+    <a class="navlink" id="guardLink" href="partner.html">💞 가짜부부 선정하러 가기 →</a>
   </div>
 
-  <div id="matchList"></div>
+  <div id="board">
+    <div class="card">
+      <h2>순위표</h2>
+      <div class="standwrap"><table id="standTable"></table></div>
+    </div>
+    <div id="matchList"></div>
+  </div>
 
-  <a class="navlink" id="infoLink" href="info.html">📋 안내 · 스케줄 &nbsp;<small>타임라인 · 정산</small></a>
-  <a class="navlink" id="partnerLink" href="partner.html">💞 가짜부부 선정 &nbsp;<small>부부매치 끝나고 →</small></a>
-  <a class="navlink" id="fakeLink" href="fake.html">🏆 가짜부부 매치 &nbsp;<small>선정 후 2부 점수판 →</small></a>
+  <a class="navlink" id="indexLink" href="index.html">🏓 부부매치 점수판 &nbsp;<small>1부 →</small></a>
+  <a class="navlink" id="partnerLink" href="partner.html">💞 가짜부부 선정 &nbsp;<small>다시 보기 →</small></a>
 
   <footer>PADEL SOCIETY</footer>
 </div>
@@ -238,8 +263,13 @@
 <div class="tvwrap">
   <div class="tvhead">
     <img class="tvlogo" src="logo.png" alt="">
-    <div class="title">부부매치</div>
-    <div class="subtitle">ROUND ROBIN · AMERICANO</div>
+    <div class="title">가짜부부 매치</div>
+    <div class="subtitle">FAKE COUPLES · REMATCH</div>
+  </div>
+  <div class="tvguard" id="tvGuard">
+    <div class="ti">🔒</div>
+    <div class="tt">가짜부부 선정 대기 중</div>
+    <div class="ts">6쌍이 정해지면 매치 점수판이 시작됩니다 · <span id="tvGuardProg">0 / 6</span></div>
   </div>
   <div class="tvprogress">
     <span class="ptext" id="tvProgLeft">0 / 15 경기</span>
@@ -316,14 +346,30 @@
 
 <script>
 /* ================= 데이터 ================= */
-const TEAMS = [
-  {n:"은영 · 진용", c:"#E8C05A"},
-  {n:"나래 · 안규", c:"#8FC7B4"},
-  {n:"현정 · 광운", c:"#E09A85"},
-  {n:"유나 · 준우", c:"#A3C585"},
-  {n:"수정 · 준석", c:"#BFA0DC"},
-  {n:"우석 · 리나", c:"#CDBE62"},
+// 원래 부부팀(색상 기준) + 아내/남편 (partner.html과 동일)
+const ORIG_TEAMS = [
+  {c:"#E8C05A"}, {c:"#8FC7B4"}, {c:"#E09A85"},
+  {c:"#A3C585"}, {c:"#BFA0DC"}, {c:"#CDBE62"},
 ];
+const PEOPLE = [
+  {wife:"은영", husband:"진용"},
+  {wife:"나래", husband:"안규"},
+  {wife:"현정", husband:"광운"},
+  {wife:"유나", husband:"준우"},
+  {wife:"수정", husband:"준석"},
+  {wife:"리나", husband:"우석"},
+];
+// 가짜부부 팀 (선정 결과 state.partners에서 동적 생성). 슬롯 i = 아내 i + 그가 고른 남편
+let TEAMS = [];
+function computeFakeTeams(){
+  const p = state.partners || {};
+  const t = [];
+  for(let i=0;i<6;i++){
+    if(p[i]===undefined || p[i]===null) return null;   // 선정 미완료
+    t.push({ n: PEOPLE[i].wife + " · " + PEOPLE[p[i]].husband, c: ORIG_TEAMS[i].c });
+  }
+  return t;
+}
 // 포스터 순서 그대로 (팀 인덱스)
 const MATCHES = [
   [0,1],[2,5],[3,4],[0,5],[1,4],
@@ -343,12 +389,12 @@ const SCHEDULE = [
 
 /* ================= 상태 ================= */
 const params = new URLSearchParams(location.search);
-let state = { rev:0, total:16, scores:{} };   // scores: {"0":[9,7], ...}
+let state = { rev:0, total:16, scores:{}, partners:{}, scores2:{} };   // scores2 = 가짜부부 매치 점수
 let room = params.get("room") || localStorage.getItem("pc_room") || "0703";
 // 모드: tv=1 스코어보드 / tv=2 스코어보드+스케줄 / 없으면 입력
 let tvMode, tvSchedule;
 (function(){
-  const p = params.get("tv"), saved = localStorage.getItem("pc_tv");
+  const p = params.get("tv"), saved = localStorage.getItem("pc_tvf");
   if(p==="2"){ tvMode=true; tvSchedule=true; }
   else if(p==="1"){ tvMode=true; tvSchedule=false; }
   else { tvMode = (saved==="1"||saved==="2"); tvSchedule = (saved==="2"); }
@@ -357,6 +403,7 @@ let lastChange = 0;   // 데이터가 마지막으로 바뀐 시각 (진단용)
 
 function loadLocal(){
   try{ const s = JSON.parse(localStorage.getItem("pc_state_"+room)); if(s && typeof s.rev==="number") state = s; }catch(e){}
+  if(!state.scores2) state.scores2 = {};
 }
 function saveLocal(){ localStorage.setItem("pc_state_"+room, JSON.stringify(state)); }
 loadLocal();
@@ -393,7 +440,8 @@ function connectSync(){
     try{
       const remote = JSON.parse(msg.toString());
       if(typeof remote.rev==="number" && remote.rev > state.rev){
-        state = remote; gotRemote = true; lastChange = Date.now(); saveLocal(); render();
+        state = remote; if(!state.scores2) state.scores2={};
+        gotRemote = true; lastChange = Date.now(); saveLocal(); render();
       } else { gotRemote = true; }
     }catch(e){}
   });
@@ -437,7 +485,7 @@ function commit(mutate){
 function standings(){
   const rows = TEAMS.map((t,i)=>({i, name:t.n, c:t.c, played:0, win:0, loss:0, draw:0, mp:0, gf:0, ga:0, gd:0}));
   MATCHES.forEach((m,mi)=>{
-    const sc = state.scores[mi]; if(!sc) return;
+    const sc = state.scores2[mi]; if(!sc) return;
     const [a,b] = sc, [ta,tb] = m;
     rows[ta].played++; rows[tb].played++;
     rows[ta].gf+=a; rows[tb].gf+=b;          // 총득점
@@ -454,8 +502,8 @@ function standings(){
   rows.sort((x,y)=> y.mp-x.mp || y.gd-x.gd || y.gf-x.gf);
   return rows;
 }
-const doneCount = () => Object.keys(state.scores).length;
-const nowIdx = () => MATCHES.findIndex((_,i)=> !state.scores[i]);
+const doneCount = () => Object.keys(state.scores2).length;
+const nowIdx = () => MATCHES.findIndex((_,i)=> !state.scores2[i]);
 
 /* ================= 렌더 (폰) ================= */
 function teamTag(i, extra){
@@ -465,6 +513,23 @@ function teamTag(i, extra){
 function render(){
   document.body.classList.toggle("tv", tvMode);
   document.body.classList.toggle("tv-sched", tvSchedule);
+
+  // 링크에 방 코드 유지
+  const idl = document.getElementById("indexLink"); if(idl) idl.href = "index.html?room=" + encodeURIComponent(room);
+  const pl = document.getElementById("partnerLink"); if(pl) pl.href = "partner.html?room=" + encodeURIComponent(room);
+  const gl = document.getElementById("guardLink"); if(gl) gl.href = "partner.html?room=" + encodeURIComponent(room);
+
+  // 가짜부부 선정 완료 여부 — 미완료면 안내 화면
+  const ft = computeFakeTeams();
+  document.body.classList.toggle("notready", !ft);
+  if(!ft){
+    const n = Object.keys(state.partners||{}).length;
+    const g = document.getElementById("guardProg"); if(g) g.textContent = n + " / 6 선정됨";
+    const tg = document.getElementById("tvGuardProg"); if(tg) tg.textContent = n + " / 6";
+    return;
+  }
+  TEAMS = ft;
+
   const done = doneCount();
   document.getElementById("progText").textContent = done + " / " + MATCHES.length + " 완료";
 
@@ -483,19 +548,11 @@ function render(){
   });
   document.getElementById("standTable").innerHTML = h;
 
-  // 링크에 방 코드 유지
-  const pl = document.getElementById("partnerLink");
-  if(pl) pl.href = "partner.html?room=" + encodeURIComponent(room);
-  const il = document.getElementById("infoLink");
-  if(il) il.href = "info.html?room=" + encodeURIComponent(room);
-  const fl = document.getElementById("fakeLink");
-  if(fl) fl.href = "fake.html?room=" + encodeURIComponent(room);
-
   // 경기 리스트
   const ni = nowIdx();
   let mh = "";
   MATCHES.forEach((m,i)=>{
-    const sc = state.scores[i];
+    const sc = state.scores2[i];
     const cls = sc ? "done" : (i===ni ? "now" : "");
     const score = sc
       ? "<span class='"+(sc[0]>sc[1]?"winner":"")+"'>"+sc[0]+"</span> : <span class='"+(sc[1]>sc[0]?"winner":"")+"'>"+sc[1]+"</span>"
@@ -563,7 +620,7 @@ function renderTV(rows, ni, done){
   // 결과+예정 리스트: 최근 결과 위주로, 현재 경기 주변을 보여줌
   let lh = "";
   MATCHES.forEach((m,i)=>{
-    const sc = state.scores[i];
+    const sc = state.scores2[i];
     const sc2 = sc ? sc[0]+" : "+sc[1] : (i===ni ? "▶" : "·");
     lh += "<div class='item'><span class='no'>"+(i+1)+"</span>"
       + "<span class='t'>"+teamTag(m[0])+" <span class='vs'>◇</span> "+teamTag(m[1])+"</span>"
@@ -592,7 +649,7 @@ setInterval(()=>{
 function setMode(view){   // "input" | "score" | "full"
   tvMode = (view !== "input");
   tvSchedule = (view === "full");
-  localStorage.setItem("pc_tv", view==="full" ? "2" : view==="score" ? "1" : "0");
+  localStorage.setItem("pc_tvf", view==="full" ? "2" : view==="score" ? "1" : "0");
   document.querySelectorAll(".modeswitch button").forEach(b=> b.classList.toggle("active", b.dataset.mode===view));
   render();
   if(tvMode && document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen().catch(()=>{}); }
@@ -619,7 +676,7 @@ const $ = id => document.getElementById(id);
 function openSheet(i){
   if(tvMode) return;
   editIdx = i;
-  const m = MATCHES[i], sc = state.scores[i];
+  const m = MATCHES[i], sc = state.scores2[i];
   $("sheetTitle").textContent = "MATCH " + (i+1);
   $("edNameA").outerHTML = teamTag(m[0]).replace("<span","<span id='edNameA'");
   $("edNameB").outerHTML = teamTag(m[1]).replace("<span","<span id='edNameB'");
@@ -650,12 +707,12 @@ function updateSum(){
 function saveScore(){
   if(editIdx < 0) return closeSheet();
   const a = parseInt($("numA").value)||0, b = parseInt($("numB").value)||0;
-  commit(()=>{ state.scores[editIdx] = [a,b]; });
+  commit(()=>{ state.scores2[editIdx] = [a,b]; });
   closeSheet();
 }
 function deleteScore(){
   if(editIdx < 0) return closeSheet();
-  commit(()=>{ delete state.scores[editIdx]; });
+  commit(()=>{ delete state.scores2[editIdx]; });
   closeSheet();
 }
 
@@ -681,7 +738,7 @@ function closeSettings(apply){
 }
 function resetAll(){
   if(!confirm("모든 경기 점수를 삭제할까요?")) return;
-  commit(()=>{ state.scores = {}; });
+  commit(()=>{ state.scores2 = {}; });
   closeSettings(false);
 }
 

@@ -1,10 +1,11 @@
 /* 부부매치 PWA 서비스워커 */
-const CACHE = "bumatch-v1";
+const CACHE = "bumatch-v2";
 const CORE = [
   "./",
   "./index.html",
   "./partner.html",
   "./info.html",
+  "./fake.html",
   "./manifest.webmanifest",
   "./logo.png",
   "./icon-192.png",
